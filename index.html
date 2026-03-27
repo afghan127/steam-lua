@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUA Manifest Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .status.info {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            color: #1976d2;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            color: #c62828;
+        }
+        
+        .examples {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .examples h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .example-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .example-btn {
+            background: #f5f5f5;
+            color: #667eea;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 LUA Manifest Downloader</h1>
+        <div class="subtitle">Get Steam game manifests without login</div>
+        
+        <div class="input-group">
+            <label for="gameId">Game ID (AppID)</label>
+            <input 
+                type="text" 
+                id="gameId" 
+                placeholder="Enter Steam AppID (e.g., 730, 570, 440)"
+                autocomplete="off"
+            >
+        </div>
+        
+        <button id="downloadBtn" onclick="downloadManifest()">
+            Download Manifest
+        </button>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="examples">
+            <h3>Popular Game IDs:</h3>
+            <div class="example-buttons">
+                <span class="example-btn" onclick="setGameId('730')">CS2 (730)</span>
+                <span class="example-btn" onclick="setGameId('570')">Dota 2 (570)</span>
+                <span class="example-btn" onclick="setGameId('440')">TF2 (440)</span>
+                <span class="example-btn" onclick="setGameId('730')">CS:GO (730)</span>
+                <span class="example-btn" onclick="setGameId('252490')">Rust (252490)</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isDownloading = false;
+        
+        function setGameId(gameId) {
+            document.getElementById('gameId').value = gameId;
+            document.getElementById('gameId').focus();
+        }
+        
+        async function downloadManifest() {
+            if (isDownloading) return;
+            
+            const gameId = document.getElementById('gameId').value.trim();
+            const statusDiv = document.getElementById('status');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            // Validate input
+            if (!gameId) {
+                showStatus('Please enter a Game ID', 'error');
+                return;
+            }
+            
+            if (!/^\d+$/.test(gameId)) {
+                showStatus('Invalid Game ID. Please use numbers only (e.g., 730)', 'error');
+                return;
+            }
+            
+            // Start download
+            isDownloading = true;
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<span class="loading"></span> Fetching manifest...';
+            showStatus(`🔍 Fetching manifest for game ID ${gameId}...`, 'info');
+            
+            try {
+                const response = await fetch(`/api/download/${gameId}`);
+                
+                if (response.ok) {
+                    // Get filename from Content-Disposition header or create one
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = `${gameId}.zip`;
+                    if (contentDisposition) {
+                        const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                        if (match && match[1]) {
+                            filename = match[1].replace(/['"]/g, '');
+                        }
+                    }
+                    
+                    // Download the file
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    showStatus(`✅ Success! Downloaded ${filename}`, 'success');
+                    
+                    // Clear input after successful download (optional)
+                    // document.getElementById('gameId').value = '';
+                    
+                } else {
+                    const errorData = await response.json();
+                    showStatus(`❌ ${errorData.error || 'Failed to download manifest'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`❌ Network error: ${error.message}. Make sure the server is running.`, 'error');
+            } finally {
+                isDownloading = false;
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = 'Download Manifest';
+                
+                // Auto-hide status after 5 seconds for success
+                setTimeout(() => {
+                    if (statusDiv.className === 'status success') {
+                        statusDiv.style.display = 'none';
+                    }
+                }, 5000);
+            }
+        }
+        
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+        
+        // Allow Enter key to trigger download
+        document.getElementById('gameId').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                downloadManifest();
+            }
+        });
+        
+        // Check server status on load
+        async function checkServerStatus() {
+            try {
+                const response = await fetch('/api/check_status');
+                const data = await response.json();
+                if (data.status === 'needs_auth') {
+                    showStatus('⚠️ Server needs authentication update. Please contact administrator.', 'error');
+                }
+            } catch (error) {
+                console.log('Server status check failed');
+            }
+        }
+        
+        checkServerStatus();
+    </script>
+</body>
+</html>
